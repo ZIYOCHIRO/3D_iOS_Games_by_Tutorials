@@ -26,7 +26,12 @@ class GameViewController: UIViewController {
     var horizontalCameraNode: SCNNode!
     var verticalCameraNode: SCNNode!
     var ballNode: SCNNode!
+    var paddleNode: SCNNode!
     var lastContactNode: SCNNode!
+    var touchX: CGFloat = 0
+    var paddleX: Float = 0
+    var floorNode: SCNNode!
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,6 +59,10 @@ class GameViewController: UIViewController {
         ballNode = scnScene.rootNode.childNode(withName: "Ball", recursively: true)!
         
         ballNode.physicsBody?.contactTestBitMask = ColliderType.Barrider.rawValue | ColliderType.Brick.rawValue | ColliderType.Paddle.rawValue
+        
+        floorNode = scnScene.rootNode.childNode(withName: "Floor", recursively: true)!
+        verticalCameraNode.constraints = [SCNLookAtConstraint(target: floorNode)]
+        horizontalCameraNode.constraints = [SCNLookAtConstraint(target: floorNode)]
     }
     
     func setupSounds() {
@@ -75,6 +84,31 @@ class GameViewController: UIViewController {
         default:
             scnView.pointOfView = horizontalCameraNode
         }
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: scnView)
+            touchX = location.x
+            paddleX = paddleNode.position.x
+        }
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: scnView)
+            paddleNode.position.x = paddleX + Float((location.x - touchX) * 0.1)
+            
+            if paddleNode.position.x > 4.5 {
+                paddleNode.position.x = 4.5
+            } else if paddleNode.position.x < -4.5 {
+                paddleNode.position.x = -4.5
+            }
+        }
+        
+        verticalCameraNode.position.x = paddleNode.position.x
+        horizontalCameraNode.position.x = paddleNode.position.x
+        
     }
 }
 
